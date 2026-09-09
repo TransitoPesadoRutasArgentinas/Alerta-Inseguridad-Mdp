@@ -1,0 +1,145 @@
+import { useState } from 'react'
+import './App.css'
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
+
+function App() {
+  const obtenerUbicacion = () => {
+    if (!navigator.geolocation) {
+      alert("Tu dispositivo no permite obtener la ubicación.")
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (posicion) => {
+        const { latitude, longitude } = posicion.coords
+        setCoordenadas({ lat: latitude, lng: longitude })
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`)
+          .then(r => r.json())
+          .then(data => {
+            setUbicacion(data.display_name || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
+          })
+          .catch(() => {
+            setUbicacion(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`)
+          })
+      },
+      () => {
+        alert("No se pudo obtener tu ubicación.")
+      }
+    )
+  }
+
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [queOcurrio, setQueOcurrio] = useState('')
+  const [ubicacion, setUbicacion] = useState('')
+  const [coordenadas, setCoordenadas] = useState(null)
+  const [alertas, setAlertas] = useState([])
+
+  const enviarAlerta = () => {
+    if (!queOcurrio.trim() || !ubicacion.trim()) {
+      alert('Completá qué ocurrió y la ubicación.')
+      return
+    }
+
+    const nuevaAlerta = {
+      id: Date.now(),
+      descripcion: queOcurrio,
+      ubicacion: ubicacion,
+      coordenadas: coordenadas,
+    }
+
+    setAlertas([nuevaAlerta, ...alertas])
+    setQueOcurrio('')
+    setUbicacion('')
+    setMostrarFormulario(false)
+  }
+
+  return (
+    <div>
+      <h1>🚨 Alerta Inseguridad MDP</h1>
+      <p>Red comunitaria de seguridad para Mar del Plata</p>
+
+      <button onClick={() => setMostrarFormulario(true)}>
+        🚨 REPORTAR ALERTA
+      </button>
+
+      {mostrarFormulario && (
+        <div>
+          <h2>Reportar una alerta</h2>
+
+          <input
+            placeholder="¿Qué ocurrió?"
+            value={queOcurrio}
+            onChange={(e) => setQueOcurrio(e.target.value)}
+          />
+
+          <input
+            placeholder="Ubicación"
+            value={ubicacion}
+            onChange={(e) => setUbicacion(e.target.value)}
+          />
+        <button type="button" onClick={obtenerUbicacion}>📍 USAR MI UBICACIÓN</button>
+
+          <button onClick={enviarAlerta}>ENVIAR ALERTA</button>
+
+          <button onClick={() => setMostrarFormulario(false)}>
+            CANCELAR
+          </button>
+        </div>
+      )}
+
+      <h2>Alertas recientes</h2>
+
+      <MapContainer
+        key={alertas[0]?.id || 'mapa-inicial'}
+        center={
+          alertas[0]?.coordenadas
+            ? [alertas[0].coordenadas.lat, alertas[0].coordenadas.lng]
+            : [-38.0055, -57.5426]
+        }
+        zoom={13}
+        style={{
+          height: '300px',
+          width: '100%',
+          marginBottom: '24px',
+          borderRadius: '16px'
+        }}
+      >
+        <TileLayer
+          attribution="© OpenStreetMap contributors"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        {alertas
+          .filter((alerta) => alerta.coordenadas)
+          .map((alerta) => (
+            <CircleMarker
+              key={alerta.id}
+              center={[alerta.coordenadas.lat, alerta.coordenadas.lng]}
+              radius={10}
+            >
+              <Popup>
+                <strong>{alerta.descripcion}</strong>
+                <br />
+                {alerta.ubicacion}
+              </Popup>
+            </CircleMarker>
+          ))}
+      </MapContainer>
+
+      {alertas.length === 0 ? (
+        <p>Próximamente vas a poder ver las alertas de tu zona.</p>
+      ) : (
+        alertas.map((alerta) => (
+          <div key={alerta.id}>
+            <h3>🚨 {alerta.descripcion}</h3>
+            <p>📍 {alerta.ubicacion}</p>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+export default App
+

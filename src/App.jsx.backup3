@@ -1,0 +1,78 @@
+import { useState } from 'react'
+import './App.css'
+
+function App() {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [queOcurrio, setQueOcurrio] = useState('')
+  const [ubicacion, setUbicacion] = useState('')
+  const [alertas, setAlertas] = useState([])
+
+  const enviarAlerta = () => {
+    if (!queOcurrio.trim() || !ubicacion.trim()) {
+      alert('Completá qué ocurrió y la ubicación.')
+      return
+    }
+
+    const nuevaAlerta = {
+      id: Date.now(),
+      descripcion: queOcurrio,
+      ubicacion: ubicacion,
+    }
+
+    setAlertas([nuevaAlerta, ...alertas])
+    setQueOcurrio('')
+    setUbicacion('')
+    setMostrarFormulario(false)
+  }
+
+  return (
+    <div>
+      <h1>🚨 Alerta Inseguridad MDP</h1>
+      <p>Red comunitaria de seguridad para Mar del Plata</p>
+
+      <button onClick={() => setMostrarFormulario(true)}>
+        🚨 REPORTAR ALERTA
+      </button>
+
+      {mostrarFormulario && (
+        <div>
+          <h2>Reportar una alerta</h2>
+
+          <input
+            placeholder="¿Qué ocurrió?"
+            value={queOcurrio}
+            onChange={(e) => setQueOcurrio(e.target.value)}
+          />
+
+          <input
+            placeholder="Ubicación"
+            value={ubicacion}
+            onChange={(e) => setUbicacion(e.target.value)}
+          />
+
+          <button onClick={enviarAlerta}>ENVIAR ALERTA</button>
+
+          <button onClick={() => setMostrarFormulario(false)}>
+            CANCELAR
+          </button>
+        </div>
+      )}
+
+      <h2>Alertas recientes</h2>
+
+      {alertas.length === 0 ? (
+        <p>Próximamente vas a poder ver las alertas de tu zona.</p>
+      ) : (
+        alertas.map((alerta) => (
+          <div key={alerta.id}>
+            <h3>🚨 {alerta.descripcion}</h3>
+            <p>📍 {alerta.ubicacion}</p>
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+export default App
+

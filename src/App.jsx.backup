@@ -1,0 +1,16 @@
+import './App.css'
+function App() {
+  return (
+    <div>
+      <h1>🚨 Alerta Inseguridad MDP</h1>
+      <p>Red comunitaria de seguridad para Mar del Plata</p>
+
+      <button>🚨 REPORTAR ALERTA</button>
+
+      <h2>Alertas recientes</h2>
+      <p>Próximamente vas a poder ver las alertas de tu zona.</p>
+    </div>
+  )
+}
+
+export default App

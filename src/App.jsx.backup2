@@ -1,0 +1,34 @@
+import './App.css'
+import { useState } from 'react'
+
+function App() {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+
+  return (
+    <div>
+      <h1>🚨 Alerta Inseguridad MDP</h1>
+      <p>Red comunitaria de seguridad para Mar del Plata</p>
+
+      <button onClick={() => setMostrarFormulario(true)}>
+        🚨 REPORTAR ALERTA
+      </button>
+
+      {mostrarFormulario && (
+        <div>
+          <h2>Reportar una alerta</h2>
+          <input type="text" placeholder="¿Qué ocurrió?" />
+          <input type="text" placeholder="Ubicación" />
+          <button>ENVIAR ALERTA</button>
+          <button onClick={() => setMostrarFormulario(false)}>
+            CANCELAR
+          </button>
+        </div>
+      )}
+
+      <h2>Alertas recientes</h2>
+      <p>Próximamente vas a poder ver las alertas de tu zona.</p>
+    </div>
+  )
+}
+
+export default App
