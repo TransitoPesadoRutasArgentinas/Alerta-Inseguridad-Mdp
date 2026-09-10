@@ -116,6 +116,7 @@ const consulta = encodeURIComponent(`${ubicacionBusqueda}, Mar del Plata, Buenos
 
     const nuevaAlerta = {
       id: Date.now(),
+      fecha: new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour12: false }),
       descripcion: queOcurrio,
       ubicacion: ubicacion,
       coordenadas: coordsFinales,
@@ -209,6 +210,7 @@ const consulta = encodeURIComponent(`${ubicacionBusqueda}, Mar del Plata, Buenos
         alertas.map((alerta) => (
           <div key={alerta.id}>
             <h3>🚨 {alerta.descripcion}</h3>
+        <p>🕒 {alerta.fecha}</p>
             <p>📍 {alerta.ubicacion}</p>
           </div>
         ))
