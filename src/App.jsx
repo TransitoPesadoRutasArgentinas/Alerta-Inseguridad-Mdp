@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -65,7 +65,8 @@ function App() {
   const [queOcurrio, setQueOcurrio] = useState('')
   const [ubicacion, setUbicacion] = useState('')
   const [coordenadas, setCoordenadas] = useState(null)
-  const [alertas, setAlertas] = useState([])
+  const [alertas, setAlertas] = useState(() => JSON.parse(localStorage.getItem('alertas') || '[]'))
+  useEffect(() => { localStorage.setItem("alertas", JSON.stringify(alertas)); }, [alertas]);
 
   const enviarAlerta = async () => {
     if (!queOcurrio.trim() || !ubicacion.trim()) {
