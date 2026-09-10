@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import './App.css'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 
 function App() {
@@ -54,22 +54,63 @@ function App() {
   const [coordenadas, setCoordenadas] = useState(null)
   const [alertas, setAlertas] = useState([])
 
-  const enviarAlerta = () => {
+  const enviarAlerta = async () => {
     if (!queOcurrio.trim() || !ubicacion.trim()) {
       alert('Completá qué ocurrió y la ubicación.')
       return
+    }
+
+    let coordsFinales = coordenadas
+
+    if (!coordsFinales) {
+      try {
+        const ubicacionBusqueda = ubicacion
+  .trim()
+  .replace(/\s+(?:y|e|&|\/|esq\.?|esquina)\s+/i, ' & ')
+const consulta = encodeURIComponent(`${ubicacionBusqueda}, Mar del Plata, Buenos Aires, Argentina`)
+        const respuesta = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${consulta}`)
+        let datos = await respuesta.json()
+
+      if (!datos.length && ubicacion.toLowerCase().includes(' y ')) {
+        const partes = ubicacion.split(/ y /i).map(x => x.trim())
+
+        if (partes.length === 2) {
+          const consultaCruce = encodeURIComponent(
+            `${partes[0]}, ${partes[1]}, Mar del Plata, Buenos Aires, Argentina`
+          )
+          const respuestaCruce = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${consultaCruce}`
+          )
+          datos = await respuestaCruce.json()
+        }
+      }
+
+      if (!datos.length) {
+        alert('No pude encontrar esa ubicación en Mar del Plata.')
+        return
+      }
+
+        coordsFinales = {
+          lat: Number(datos[0].lat),
+          lng: Number(datos[0].lon)
+        }
+      } catch {
+        alert('No se pudo buscar la ubicación.')
+        return
+      }
     }
 
     const nuevaAlerta = {
       id: Date.now(),
       descripcion: queOcurrio,
       ubicacion: ubicacion,
-      coordenadas: coordenadas,
+      coordenadas: coordsFinales,
     }
 
     setAlertas([nuevaAlerta, ...alertas])
     setQueOcurrio('')
     setUbicacion('')
+    setCoordenadas(null)
     setMostrarFormulario(false)
   }
 
