@@ -1,9 +1,22 @@
 import { useState } from 'react'
 import './App.css'
-import { MapContainer, TileLayer, CircleMarker, Popup, useMapEvents } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
+const sirenaIcon = L.divIcon({ html: '<div style="font-size:28px">🚨</div>', className: '', iconSize: [30, 30], iconAnchor: [15, 15] })
+function SelectorMapa({ onSeleccionar }) {
+  useMapEvents({
+    click(e) {
+      onSeleccionar(e.latlng)
+    }
+  })
+  return null
+}
 
 function App() {
+  const seleccionarEnMapa = (p) => { setCoordenadas({lat:p.lat,lng:p.lng}); fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+p.lat+'&lon='+p.lng).then(r=>r.json()).then(d=>setUbicacion(d.display_name || (p.lat.toFixed(6)+', '+p.lng.toFixed(6)))).catch(()=>setUbicacion(p.lat.toFixed(6)+', '+p.lng.toFixed(6))) }
+
   const obtenerUbicacion = () => {
     if (!navigator.geolocation) {
       alert("Tu dispositivo no permite obtener la ubicación.")
@@ -165,7 +178,9 @@ const consulta = encodeURIComponent(`${ubicacionBusqueda}, Mar del Plata, Buenos
           borderRadius: '16px'
         }}
       >
-        <TileLayer
+        <SelectorMapa onSeleccionar={seleccionarEnMapa} />
+          {coordenadas && <CircleMarker center={[coordenadas.lat, coordenadas.lng]} radius={10}><Popup>📍 Ubicación seleccionada</Popup></CircleMarker>}
+          <TileLayer
           attribution="© OpenStreetMap contributors"
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
@@ -173,17 +188,17 @@ const consulta = encodeURIComponent(`${ubicacionBusqueda}, Mar del Plata, Buenos
         {alertas
           .filter((alerta) => alerta.coordenadas)
           .map((alerta) => (
-            <CircleMarker
-              key={alerta.id}
-              center={[alerta.coordenadas.lat, alerta.coordenadas.lng]}
-              radius={10}
-            >
+          <Marker
+            key={alerta.id}
+            position={[alerta.coordenadas.lat, alerta.coordenadas.lng]}
+            icon={sirenaIcon}
+          >
               <Popup>
                 <strong>{alerta.descripcion}</strong>
                 <br />
                 {alerta.ubicacion}
               </Popup>
-            </CircleMarker>
+            </Marker>
           ))}
       </MapContainer>
 
